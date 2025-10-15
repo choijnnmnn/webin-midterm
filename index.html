@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>한글 수화 학습 - 손가락으로 이름 배우기</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Arial', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #333; min-height: 100vh; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 30px; color: white; }
+        .header h1 { font-size: 3em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .header p { font-size: 1.2em; opacity: 0.9; }
+        .main-content { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
+        .left-panel, .right-panel { background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .video-container { position: relative; display: inline-block; margin-bottom: 20px; border-radius: 15px; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.15); border: 3px solid #e0e0e0; }
+        #video { width: 100%; max-width: 500px; height: auto; background: #000; transform: scaleX(-1); }
+        #canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; transform: scaleX(-1); }
+        .controls { text-align: center; margin: 20px 0; }
+        button { background: #3498db; border: none; color: white; padding: 15px 30px; margin: 0 10px; border-radius: 25px; cursor: pointer; font-size: 16px; font-weight: bold; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3); }
+        button:hover { background: #2980b9; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; background: #bdc3c7; }
+        .input-section { margin-bottom: 30px; }
+        .input-section h3 { color: #2c3e50; margin-bottom: 15px; font-size: 1.5em; }
+        .name-input { width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 18px; margin-bottom: 15px; text-align: center; }
+        .name-input:focus { outline: none; border-color: #3498db; box-shadow: 0 0 10px rgba(52, 152, 219, 0.3); }
+        /* [추가] 손 선택 옵션 스타일 */
+        .hand-option-section { margin-bottom: 20px; text-align: center; }
+        .hand-option-section label { margin: 0 10px; font-size: 16px; cursor: pointer; }
+        .hand-option-section input[type="radio"] { margin-right: 5px; }
+        .decomposed-letters { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 20px 0; }
+        .letter-card { background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 10px; padding: 15px; text-align: center; min-width: 60px; transition: all 0.3s ease; }
+        .letter-card.current { background: #e3f2fd; border-color: #2196f3; transform: scale(1.1); box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3); }
+        .letter-card.completed { background: #e8f5e8; border-color: #4caf50; }
+        .letter-card h4 { font-size: 1.2em; margin-bottom: 5px; }
+        .letter-card p { font-size: 0.9em; color: #666; }
+        .learning-section { margin-top: 30px; }
+        .current-letter { text-align: center; margin: 20px 0; }
+        .current-letter h2 { font-size: 3em; color: #e74c3c; margin-bottom: 10px; }
+        .current-letter p { font-size: 1.2em; color: #666; }
+        .sign-guide { background: #f8f9fa; border-radius: 15px; padding: 20px; margin: 20px 0; border: 1px solid #e9ecef; }
+        .sign-guide h4 { color: #2c3e50; margin-bottom: 15px; }
+        .sign-guide ul { list-style: none; padding: 0; }
+        .sign-guide li { padding: 8px 0; border-bottom: 1px solid #eee; }
+        .sign-guide li:last-child { border-bottom: none; }
+        .progress-section { background: #f8f9fa; border-radius: 15px; padding: 20px; margin: 20px 0; }
+        .progress-bar { width: 100%; height: 20px; background: #e9ecef; border-radius: 10px; overflow: hidden; margin: 10px 0; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #4caf50, #8bc34a); transition: width 0.3s ease; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 20px 0; }
+        .stat-card { background: white; border-radius: 10px; padding: 15px; text-align: center; border: 1px solid #e9ecef; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .stat-card h4 { color: #2c3e50; margin-bottom: 5px; }
+        .stat-card .number { font-size: 2em; font-weight: bold; color: #3498db; }
+        .feedback-section { margin: 20px 0; text-align: center; height: 50px; }
+        .feedback { padding: 15px; border-radius: 10px; font-size: 1.1em; font-weight: bold; margin: 10px 0; }
+        .feedback.correct { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .feedback.incorrect { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .gesture-status { background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; padding: 10px; border-radius: 10px; margin: 10px 0; text-align: center; font-style: italic; }
+        .sign-example { margin-top: 20px; text-align: center; }
+        .sign-example h5 { color: #2c3e50; margin-bottom: 15px; font-size: 1.2em; }
+        .sign-image { width: 200px; height: 200px; margin: 0 auto; background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.5em; color: #888; position: relative; overflow: hidden; }
+        .sign-image img { width: 100%; height: 100%; object-fit: contain; }
+        .hidden { display: none; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 768px) {
+            .main-content { grid-template-columns: 1fr; }
+            .header h1 { font-size: 2em; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤚 한글 수화 학습</h1>
+            <p>손가락으로 나의 이름을 배워보세요!</p>
+        </div>
+
+        <div class="main-content">
+            <div class="left-panel">
+                <h3>📹 실시간 수화 인식</h3>
+                <div class="video-container">
+                    <video id="video" autoplay muted playsinline></video>
+                    <canvas id="canvas"></canvas>
+                </div>
+                <div class="controls">
+                    <button id="startBtn">카메라 시작</button>
+                    <button id="stopBtn" disabled>카메라 중지</button>
+                    <button id="practiceBtn" disabled>연습 모드</button>
+                </div>
+                <div class="feedback-section">
+                    <div id="feedback" class="feedback hidden"></div>
+                    <div id="gestureStatus" class="gesture-status hidden"><p>손을 카메라 앞에 올려주세요</p></div>
+                </div>
+                <div class="current-letter">
+                    <h2 id="currentLetterDisplay">-</h2>
+                    <p id="currentLetterName">학습할 자모음을 선택하세요</p>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="input-section">
+                    <h3>✏️ 이름 입력</h3>
+                    <input type="text" id="nameInput" class="name-input" placeholder="예: 김철수" maxlength="10">
+                    <button id="analyzeBtn" disabled>이름 분석하기</button>
+                </div>
+
+                <div class="hand-option-section">
+                    <h3>🖐️ 연습할 손 선택</h3>
+                    <label><input type="radio" name="hand" value="right" checked> 오른손</label>
+                    <label><input type="radio" name="hand" value="left"> 왼손</label>
+                </div>
+
+                <div id="decomposedSection" class="hidden">
+                    <h3>🔤 자모음 분해</h3>
+                    <div id="decomposedLetters" class="decomposed-letters"></div>
+                </div>
+
+                <div class="learning-section">
+                    <h3>📚 학습 진행</h3>
+                    <div class="progress-section">
+                        <h4>전체 진행률</h4>
+                        <div class="progress-bar">
+                            <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <p id="progressText">0% 완료</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h4>학습한 자모음</h4>
+                            <div class="number" id="learnedCount">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>정확도</h4>
+                            <div class="number" id="accuracy">0%</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>연습 횟수</h4>
+                            <div class="number" id="practiceCount">0</div>
+                        </div>
+                    </div>
+                    <div class="sign-guide">
+                        <h4>🎯 현재 자모음 수화 방법</h4>
+                        <div id="signInstructions">이름을 입력하고 분석하기 버튼을 눌러주세요.</div>
+                        <div id="signExample" class="sign-example hidden">
+                            <h5>수화 예시</h5>
+                            <div id="signImage" class="sign-image"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+<script>
+    class KoreanSignLanguageLearner {
+        constructor() {
+            // (이전 코드와 동일한 DOM 요소 설정 부분... 생략)
+            this.video = document.getElementById('video');
+            this.canvas = document.getElementById('canvas');
+            this.ctx = this.canvas.getContext('2d');
+            this.startBtn = document.getElementById('startBtn');
+            this.stopBtn = document.getElementById('stopBtn');
+            this.practiceBtn = document.getElementById('practiceBtn');
+            this.nameInput = document.getElementById('nameInput');
+            this.analyzeBtn = document.getElementById('analyzeBtn');
+            this.handOptionRadios = document.querySelectorAll('input[name="hand"]');
+
+            this.hands = null;
+            this.camera = null;
+            this.isRunning = false;
+            this.isPracticing = false;
+            
+            this.decomposedSyllables = [];
+            this.currentSyllableIndex = 0;
+            this.currentJamoTypeIndex = 0; 
+            this.learnedLetters = new Set();
+            this.practiceCount = 0;
+            this.correctCount = 0;
+            this.dominantHand = 'right';
+            this.lastGestureTime = 0;
+            this.gestureDebounceTime = 1000;
+            
+            this.signPatterns = this.initializeSignPatterns();
+            
+            this.initializeMediaPipe();
+            this.setupEventListeners();
+        }
+
+        initializeSignPatterns() {
+            // 설명을 방향에 맞게 수정
+            return {
+                'ㄱ': { thumb: 'bent', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '검지를 구부려 갈고리 모양을 만듭니다.' },
+                'ㄴ': { thumb: 'bent', index: 'extended', middle: 'extended', ring: 'bent', pinky: 'bent', description: '검지와 중지를 펴서 붙입니다.' },
+                'ㄷ': { thumb: 'extended', index: 'extended', middle: 'extended', ring: 'extended', pinky: 'bent', description: '엄지로 새끼손가락을 누르고 나머지 세 손가락을 폅니다.' },
+                'ㄹ': { thumb: 'extended', index: 'extended', middle: 'extended', ring: 'bent', pinky: 'bent', description: '엄지, 검지, 중지를 펴고 나머지는 구부립니다.' },
+                'ㅁ': { thumb: 'bent', index: 'extended', middle: 'extended', ring: 'extended', pinky: 'extended', description: '네 손가락을 붙여 세우고 엄지는 손바닥에 붙입니다.' },
+                'ㅂ': { thumb: 'extended', index: 'extended', middle: 'extended', ring: 'extended', pinky: 'extended', description: '손바닥이 앞을 향하게 하고 모든 손가락을 폅니다.' },
+                'ㅅ': { thumb: 'bent', index: 'extended', middle: 'extended', ring: 'bent', pinky: 'bent', description: '검지와 중지를 교차시켜 폅니다. (인식기는 교차를 감지하지 못하고 ㄴ과 같게 볼 수 있습니다)' },
+                'ㅇ': { thumb: 'extended', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '엄지와 검지 끝을 붙여 동그라미를 만듭니다.' },
+                'ㅈ': { thumb: 'bent', index: 'extended', middle: 'extended', ring: 'extended', pinky: 'bent', description: '검지, 중지, 약지를 펴고 나머지는 구부립니다.' },
+                'ㅊ': { thumb: 'bent', index: 'bent', middle: 'bent', ring: 'bent', pinky: 'extended', description: '새끼손가락만 펴고(ㅣ 모양) 위아래로 움직입니다. (정지 동작은 ㅣ와 동일)' },
+                'ㅋ': { thumb: 'extended', index: 'extended', middle: 'extended', ring: 'bent', pinky: 'bent', description: '검지와 중지를 펴고(ㄴ 모양), 엄지 끝을 중지 첫마디에 댑니다.' },
+                'ㅌ': { thumb: 'bent', index: 'extended', middle: 'extended', ring: 'extended', pinky: 'extended', description: '네 손가락을 붙여 펴고(ㅁ 모양) 손목을 비틉니다. (정지 동작은 ㅁ과 동일)' },
+                'ㅍ': { thumb: 'extended', index: 'extended', middle: 'extended', ring: 'bent', pinky: 'extended', description: '검지, 중지, 새끼손가락을 펴고 엄지로 약지를 누릅니다.' },
+                'ㅎ': { thumb: 'extended', index: 'extended', middle: 'extended', ring: 'extended', pinky: 'extended', description: '손바닥을 아래로 향하게 펴고(ㅂ 모양) 좌우로 흔듭니다. (정지 동작은 ㅂ과 동일)' },
+                'ㅏ': { thumb: 'extended', index: 'bent', middle: 'bent', ring: 'bent', pinky: 'bent', description: '엄지를 펴고 나머지는 주먹을 쥡니다.' },
+                'ㅑ': { thumb: 'extended', index: 'bent', middle: 'bent', ring: 'bent', pinky: 'bent', description: 'ㅏ 모양에서 오른쪽으로 두 번 짧게 움직입니다. (정지 동작은 ㅏ와 동일)' },
+                'ㅓ': { thumb: 'bent', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '검지를 펴고, 손등이 정면을 향하도록 손을 세웁니다.' },
+                'ㅕ': { thumb: 'bent', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: 'ㅓ 모양에서 오른쪽으로 두 번 짧게 움직입니다. (정지 동작은 ㅓ와 동일)' },
+                'ㅗ': { thumb: 'extended', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '엄지와 검지를 펴서 직각(ㅗ)으로 만듭니다.' },
+                'ㅛ': { thumb: 'extended', 'index': 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: 'ㅗ 모양에서 위로 두 번 짧게 움직입니다. (정지 동작은 ㅗ와 동일)' },
+                'ㅜ': { thumb: 'bent', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '검지를 펴서 아래를 가리킵니다. (손등이 위를 향함)' },
+                'ㅠ': { thumb: 'bent', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: 'ㅜ 모양에서 아래로 두 번 짧게 움직입니다. (정지 동작은 ㅜ와 동일)' },
+                'ㅡ': { thumb: 'bent', 'index': 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '검지를 펴서 수평으로 만듭니다. (손등이 위를 향하고 손끝이 왼쪽을 향함)' },
+                'ㅣ': { thumb: 'bent', index: 'bent', middle: 'bent', ring: 'bent', pinky: 'extended', description: '새끼손가락을 펴고 나머지는 주먹을 쥡니다.' },
+            };
+        }
+
+        // (이전 코드와 동일한 함수들... initializeMediaPipe, setupEventListeners, analyzeName 등 생략)
+        async initializeMediaPipe() { this.hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` }); this.hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.7, minTrackingConfidence: 0.7 }); this.hands.onResults((results) => this.onResults(results)); }
+        setupEventListeners() { this.startBtn.addEventListener('click', () => this.startCamera()); this.stopBtn.addEventListener('click', () => this.stopCamera()); this.practiceBtn.addEventListener('click', () => this.togglePracticeMode()); this.nameInput.addEventListener('input', () => this.onNameInputChange()); this.analyzeBtn.addEventListener('click', () => this.analyzeName()); this.handOptionRadios.forEach(radio => { radio.addEventListener('change', (event) => { this.dominantHand = event.target.value; }); }); }
+        onNameInputChange() { this.analyzeBtn.disabled = !this.nameInput.value.trim(); }
+        analyzeName() { const name = this.nameInput.value.trim(); if (!name) return; this.decomposedSyllables = this.decomposeKoreanName(name); this.currentSyllableIndex = 0; this.currentJamoTypeIndex = 0; this.learnedLetters.clear(); this.practiceCount = 0; this.correctCount = 0; this.displayDecomposedLetters(); this.updateCurrentLetter(); this.updateProgress(); this.updateStats(); document.getElementById('decomposedSection').classList.remove('hidden'); this.practiceBtn.disabled = !this.isRunning; }
+        decomposeKoreanName(name) { const syllables = []; const initials = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']; const medials = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ']; const finals = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']; for (let i = 0; i < name.length; i++) { const code = name[i].charCodeAt(0); if (code >= 0xAC00 && code <= 0xD7A3) { const base = code - 0xAC00; const initial = Math.floor(base / 588); const medial = Math.floor((base % 588) / 28); const final = base % 28; const syllableJamos = [initials[initial], medials[medial]]; if (finals[final]) syllableJamos.push(finals[final]); syllables.push({ char: name[i], jamos: syllableJamos, decomposed: `${initials[initial]}${medials[medial]}${finals[final]}` }); } } return syllables; }
+        displayDecomposedLetters() { const container = document.getElementById('decomposedLetters'); container.innerHTML = ''; this.decomposedSyllables.forEach((syllable, index) => { const card = document.createElement('div'); card.className = 'letter-card'; card.id = `syllable-${index}`; card.innerHTML = `<h4>${syllable.char}</h4><p>${syllable.decomposed}</p>`; container.appendChild(card); }); }
+        updateCurrentLetter() { if (this.currentSyllableIndex >= this.decomposedSyllables.length) { document.getElementById('currentLetterDisplay').textContent = '완료!'; document.getElementById('currentLetterName').textContent = '모든 자모음을 학습했습니다!'; document.getElementById('signInstructions').textContent = '축하합니다! 이름을 모두 완성했어요.'; this.hideSignExample(); return; } const currentSyllable = this.decomposedSyllables[this.currentSyllableIndex]; const currentJamo = currentSyllable.jamos[this.currentJamoTypeIndex]; const jamoTypes = ['초성', '중성', '종성']; document.getElementById('currentLetterDisplay').textContent = currentJamo; document.getElementById('currentLetterName').textContent = `${jamoTypes[this.currentJamoTypeIndex]}: ${currentJamo}`; this.updateSignInstructions(currentJamo); document.querySelectorAll('.letter-card').forEach(card => card.classList.remove('current')); document.getElementById(`syllable-${this.currentSyllableIndex}`).classList.add('current'); }
+        updateSignInstructions(letter) { const pattern = this.signPatterns[letter]; if (pattern) { document.getElementById('signInstructions').innerHTML = `<ul><li>${pattern.description}</li></ul>`; this.showSignExample(letter); } else { document.getElementById('signInstructions').innerHTML = '이 자모음의 수화 패턴이 없습니다. 다음으로 넘어갑니다.'; this.hideSignExample(); setTimeout(() => this.nextJamo(), 1500); } }
+        showSignExample(letter) { const signExample = document.getElementById('signExample'); const signImage = document.getElementById('signImage'); signImage.innerHTML = `<span>이미지 준비 중</span>`; signExample.classList.remove('hidden'); signExample.classList.add('fade-in'); }
+        hideSignExample() { document.getElementById('signExample').classList.add('hidden'); }
+        async startCamera() { try { this.startBtn.disabled = true; this.camera = new Camera(this.video, { onFrame: async () => { if (this.hands) await this.hands.send({ image: this.video }); }, width: 500, height: 400 }); await this.camera.start(); this.isRunning = true; this.stopBtn.disabled = false; if (this.decomposedSyllables.length > 0) this.practiceBtn.disabled = false; } catch (error) { console.error('카메라 시작 오류:', error); this.startBtn.disabled = false; } }
+        stopCamera() { if (this.camera) { this.camera.stop(); this.camera = null; } this.isRunning = false; this.isPracticing = false; this.startBtn.disabled = false; this.stopBtn.disabled = true; this.practiceBtn.disabled = true; this.practiceBtn.textContent = '연습 모드'; this.practiceBtn.style.background = '#3498db'; this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); this.hideFeedback(); }
+        togglePracticeMode() { this.isPracticing = !this.isPracticing; this.practiceBtn.textContent = this.isPracticing ? '연습 중지' : '연습 시작'; this.practiceBtn.style.background = this.isPracticing ? '#e74c3c' : '#2980b9'; document.getElementById('gestureStatus').classList.toggle('hidden', !this.isPracticing); if (!this.isPracticing) this.hideFeedback(); }
+        showFeedback(message, type) { const feedback = document.getElementById('feedback'); feedback.textContent = message; feedback.className = `feedback ${type} fade-in`; feedback.classList.remove('hidden'); }
+        hideFeedback() { document.getElementById('feedback').classList.add('hidden'); }
+        nextJamo() { const currentSyllable = this.decomposedSyllables[this.currentSyllableIndex]; if (this.currentJamoTypeIndex >= currentSyllable.jamos.length - 1) { document.getElementById(`syllable-${this.currentSyllableIndex}`).classList.add('completed'); this.currentSyllableIndex++; this.currentJamoTypeIndex = 0; } else { this.currentJamoTypeIndex++; } this.updateCurrentLetter(); this.updateProgress(); this.hideFeedback(); }
+        updateProgress() { let learnedJamos = 0; for(let i=0; i < this.currentSyllableIndex; i++) learnedJamos += this.decomposedSyllables[i].jamos.length; learnedJamos += this.currentJamoTypeIndex; let totalJamos = this.decomposedSyllables.reduce((sum, s) => sum + s.jamos.length, 0); const progress = totalJamos > 0 ? (learnedJamos / totalJamos) * 100 : 0; document.getElementById('progressFill').style.width = `${progress}%`; document.getElementById('progressText').textContent = `${Math.round(progress)}% 완료`; }
+        updateStats() { document.getElementById('learnedCount').textContent = this.learnedLetters.size; const accuracy = this.practiceCount > 0 ? (this.correctCount / this.practiceCount) * 100 : 0; document.getElementById('accuracy').textContent = `${Math.round(accuracy)}%`; document.getElementById('practiceCount').textContent = this.practiceCount; }
+        
+        // ===================================================================
+        // [신규 추가] 손바닥 방향 계산 함수
+        // ===================================================================
+        calculatePalmNormal(landmarks) {
+            const p0 = landmarks[0]; // Wrist
+            const p5 = landmarks[5]; // Index finger MCP
+            const p17 = landmarks[17]; // Pinky MCP
+
+            // Create two vectors on the plane of the palm
+            const v1 = { x: p5.x - p0.x, y: p5.y - p0.y, z: p5.z - p0.z };
+            const v2 = { x: p17.x - p0.x, y: p17.y - p0.y, z: p17.z - p0.z };
+
+            // Calculate the cross product to get the normal vector
+            const normal = {
+                x: v1.y * v2.z - v1.z * v2.y,
+                y: v1.z * v2.x - v1.x * v2.z,
+                z: v1.x * v2.y - v1.y * v2.x
+            };
+
+            // Normalize the vector (make its length 1)
+            const magnitude = Math.sqrt(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
+            normal.x /= magnitude;
+            normal.y /= magnitude;
+            normal.z /= magnitude;
+
+            return normal;
+        }
+
+        onResults(results) {
+            this.canvas.width = this.video.videoWidth;
+            this.canvas.height = this.video.videoHeight;
+            this.ctx.save();
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const landmarks = results.multiHandLandmarks[0];
+                drawConnectors(this.ctx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 5 });
+                drawLandmarks(this.ctx, landmarks, { color: '#FF0000', lineWidth: 2 });
+                
+                if (this.isPracticing && this.decomposedSyllables.length > 0) {
+                    const now = Date.now();
+                    if (now - this.lastGestureTime > this.gestureDebounceTime) {
+                        this.processGesture(landmarks);
+                        this.lastGestureTime = now;
+                    }
+                }
+                document.getElementById('gestureStatus').textContent = '손 모양을 만들어주세요!';
+            } else if(this.isPracticing) {
+                document.getElementById('gestureStatus').textContent = '카메라에 손이 보이도록 해주세요.';
+            }
+            this.ctx.restore();
+        }
+        
+        processGesture(landmarks) {
+            if (this.currentSyllableIndex >= this.decomposedSyllables.length) return;
+
+            const currentJamo = this.decomposedSyllables[this.currentSyllableIndex].jamos[this.currentJamoTypeIndex];
+            const targetPattern = this.signPatterns[currentJamo];
+            if (!targetPattern) return;
+
+            const currentPattern = this.analyzeHandPattern(landmarks);
+            
+            // 1. 기본 손 모양이 맞는지 먼저 확인
+            let isShapeCorrect = Object.keys(targetPattern).every(finger => 
+                finger === 'description' || targetPattern[finger] === currentPattern[finger]
+            );
+
+            // ===================================================================
+            // [수정] 방향이 중요한 자모음에 대해 추가 조건 확인
+            // ===================================================================
+            if (isShapeCorrect) {
+                const normal = this.calculatePalmNormal(landmarks);
+                const threshold = 0.6; // 방향 일치 임계값 (클수록 엄격)
+
+                // 오른손 기준: 손등이 정면(z축 음수), 손끝이 왼쪽(x축 음수)
+                // 왼손 기준: 손등이 정면(z축 음수), 손끝이 오른쪽(x축 양수)
+                const isFacingForward = (this.dominantHand === 'right') ? (normal.x < -threshold) : (normal.x > threshold);
+                
+                // 오른손/왼손 모두: 손등이 위(y축 음수), 손바닥이 아래(y축 양수)
+                const isFacingDown = normal.y > threshold; 
+
+                if (currentJamo === 'ㅓ' && !isFacingForward) {
+                    isShapeCorrect = false;
+                } else if (currentJamo === 'ㅜ' && !isFacingDown) {
+                    isShapeCorrect = false;
+                } else if (currentJamo === 'ㅡ' && !isFacingDown) { // ㅡ도 손등이 위를 향함
+                    isShapeCorrect = false;
+                }
+            }
+            // ===================================================================
+
+            this.practiceCount++;
+            if (isShapeCorrect) {
+                this.showFeedback('정확합니다! 👍', 'correct');
+                this.learnedLetters.add(currentJamo);
+                this.correctCount++;
+                setTimeout(() => { this.nextJamo(); }, 1500);
+            } else {
+                this.showFeedback('모양이나 방향이 달라요. 다시 시도해 보세요.', 'incorrect');
+            }
+            this.updateStats();
+        }
+
+        analyzeHandPattern(landmarks) {
+            return {
+                thumb: this.getThumbState(landmarks),
+                index: this.getFingerState(landmarks, 8, 6),
+                middle: this.getFingerState(landmarks, 12, 10),
+                ring: this.getFingerState(landmarks, 16, 14),
+                pinky: this.getFingerState(landmarks, 20, 18)
+            };
+        }
+
+        getFingerState(landmarks, tipIndex, dipIndex) {
+            return landmarks[tipIndex].y < landmarks[dipIndex].y ? 'extended' : 'bent';
+        }
+
+        getThumbState(landmarks) {
+            if (this.dominantHand === 'right') {
+                return landmarks[4].x < landmarks[3].x ? 'extended' : 'bent';
+            } else {
+                return landmarks[4].x > landmarks[3].x ? 'extended' : 'bent';
+            }
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => new KoreanSignLanguageLearner());
+</script>
+</body>
+</html>
