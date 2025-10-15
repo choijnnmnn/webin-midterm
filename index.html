@@ -225,7 +225,7 @@
             };
         }
 
-        // (이전 코드와 동일한 함수들... initializeMediaPipe, setupEventListeners, analyzeName 등 생략)
+       
         async initializeMediaPipe() { this.hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` }); this.hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.7, minTrackingConfidence: 0.7 }); this.hands.onResults((results) => this.onResults(results)); }
         setupEventListeners() { this.startBtn.addEventListener('click', () => this.startCamera()); this.stopBtn.addEventListener('click', () => this.stopCamera()); this.practiceBtn.addEventListener('click', () => this.togglePracticeMode()); this.nameInput.addEventListener('input', () => this.onNameInputChange()); this.analyzeBtn.addEventListener('click', () => this.analyzeName()); this.handOptionRadios.forEach(radio => { radio.addEventListener('change', (event) => { this.dominantHand = event.target.value; }); }); }
         onNameInputChange() { this.analyzeBtn.disabled = !this.nameInput.value.trim(); }
@@ -245,9 +245,7 @@
         updateProgress() { let learnedJamos = 0; for(let i=0; i < this.currentSyllableIndex; i++) learnedJamos += this.decomposedSyllables[i].jamos.length; learnedJamos += this.currentJamoTypeIndex; let totalJamos = this.decomposedSyllables.reduce((sum, s) => sum + s.jamos.length, 0); const progress = totalJamos > 0 ? (learnedJamos / totalJamos) * 100 : 0; document.getElementById('progressFill').style.width = `${progress}%`; document.getElementById('progressText').textContent = `${Math.round(progress)}% 완료`; }
         updateStats() { document.getElementById('learnedCount').textContent = this.learnedLetters.size; const accuracy = this.practiceCount > 0 ? (this.correctCount / this.practiceCount) * 100 : 0; document.getElementById('accuracy').textContent = `${Math.round(accuracy)}%`; document.getElementById('practiceCount').textContent = this.practiceCount; }
         
-        // ===================================================================
-        // [신규 추가] 손바닥 방향 계산 함수
-        // ===================================================================
+       
         calculatePalmNormal(landmarks) {
             const p0 = landmarks[0]; // Wrist
             const p5 = landmarks[5]; // Index finger MCP
@@ -307,34 +305,31 @@
 
             const currentPattern = this.analyzeHandPattern(landmarks);
             
-            // 1. 기본 손 모양이 맞는지 먼저 확인
+            
             let isShapeCorrect = Object.keys(targetPattern).every(finger => 
                 finger === 'description' || targetPattern[finger] === currentPattern[finger]
             );
 
-            // ===================================================================
-            // [수정] 방향이 중요한 자모음에 대해 추가 조건 확인
-            // ===================================================================
+           
             if (isShapeCorrect) {
                 const normal = this.calculatePalmNormal(landmarks);
-                const threshold = 0.6; // 방향 일치 임계값 (클수록 엄격)
+                const threshold = 0.6;  
 
-                // 오른손 기준: 손등이 정면(z축 음수), 손끝이 왼쪽(x축 음수)
-                // 왼손 기준: 손등이 정면(z축 음수), 손끝이 오른쪽(x축 양수)
+                 
                 const isFacingForward = (this.dominantHand === 'right') ? (normal.x < -threshold) : (normal.x > threshold);
                 
-                // 오른손/왼손 모두: 손등이 위(y축 음수), 손바닥이 아래(y축 양수)
+               
                 const isFacingDown = normal.y > threshold; 
 
                 if (currentJamo === 'ㅓ' && !isFacingForward) {
                     isShapeCorrect = false;
                 } else if (currentJamo === 'ㅜ' && !isFacingDown) {
                     isShapeCorrect = false;
-                } else if (currentJamo === 'ㅡ' && !isFacingDown) { // ㅡ도 손등이 위를 향함
+                } else if (currentJamo === 'ㅡ' && !isFacingDown) {
                     isShapeCorrect = false;
                 }
             }
-            // ===================================================================
+            
 
             this.practiceCount++;
             if (isShapeCorrect) {
