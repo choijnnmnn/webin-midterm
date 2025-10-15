@@ -24,7 +24,7 @@
         .input-section h3 { color: #2c3e50; margin-bottom: 15px; font-size: 1.5em; }
         .name-input { width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 18px; margin-bottom: 15px; text-align: center; }
         .name-input:focus { outline: none; border-color: #3498db; box-shadow: 0 0 10px rgba(52, 152, 219, 0.3); }
-        /* [추가] 손 선택 옵션 스타일 */
+    
         .hand-option-section { margin-bottom: 20px; text-align: center; }
         .hand-option-section label { margin: 0 10px; font-size: 16px; cursor: pointer; }
         .hand-option-section input[type="radio"] { margin-right: 5px; }
@@ -72,13 +72,13 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🤚 한글 수화 학습</h1>
+            <h1> 한글 수화 학습</h1>
             <p>손가락으로 나의 이름을 배워보세요!</p>
         </div>
 
         <div class="main-content">
             <div class="left-panel">
-                <h3>📹 실시간 수화 인식</h3>
+                <h3>실시간 수화 인식</h3>
                 <div class="video-container">
                     <video id="video" autoplay muted playsinline></video>
                     <canvas id="canvas"></canvas>
@@ -100,24 +100,24 @@
 
             <div class="right-panel">
                 <div class="input-section">
-                    <h3>✏️ 이름 입력</h3>
+                    <h3>이름 입력</h3>
                     <input type="text" id="nameInput" class="name-input" placeholder="예: 김철수" maxlength="10">
                     <button id="analyzeBtn" disabled>이름 분석하기</button>
                 </div>
 
                 <div class="hand-option-section">
-                    <h3>🖐️ 연습할 손 선택</h3>
+                    <h3>습할 손 선택</h3>
                     <label><input type="radio" name="hand" value="right" checked> 오른손</label>
                     <label><input type="radio" name="hand" value="left"> 왼손</label>
                 </div>
 
                 <div id="decomposedSection" class="hidden">
-                    <h3>🔤 자모음 분해</h3>
+                    <h3>자모음 분해</h3>
                     <div id="decomposedLetters" class="decomposed-letters"></div>
                 </div>
 
                 <div class="learning-section">
-                    <h3>📚 학습 진행</h3>
+                    <h3>학습 진행</h3>
                     <div class="progress-section">
                         <h4>전체 진행률</h4>
                         <div class="progress-bar">
@@ -140,7 +140,7 @@
                         </div>
                     </div>
                     <div class="sign-guide">
-                        <h4>🎯 현재 자모음 수화 방법</h4>
+                        <h4> 현재 자모음 수화 방법</h4>
                         <div id="signInstructions">이름을 입력하고 분석하기 버튼을 눌러주세요.</div>
                         <div id="signExample" class="sign-example hidden">
                             <h5>수화 예시</h5>
@@ -163,7 +163,7 @@
 <script>
     class KoreanSignLanguageLearner {
         constructor() {
-            // (이전 코드와 동일한 DOM 요소 설정 부분... 생략)
+           
             this.video = document.getElementById('video');
             this.canvas = document.getElementById('canvas');
             this.ctx = this.canvas.getContext('2d');
@@ -196,32 +196,32 @@
         }
 
         initializeSignPatterns() {
-            // 설명을 방향에 맞게 수정
+            
             return {
-                'ㄱ': { thumb: 'bent', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '검지를 구부려 갈고리 모양을 만듭니다.' },
-                'ㄴ': { thumb: 'bent', index: 'extended', middle: 'extended', ring: 'bent', pinky: 'bent', description: '검지와 중지를 펴서 붙입니다.' },
-                'ㄷ': { thumb: 'extended', index: 'extended', middle: 'extended', ring: 'extended', pinky: 'bent', description: '엄지로 새끼손가락을 누르고 나머지 세 손가락을 폅니다.' },
-                'ㄹ': { thumb: 'extended', index: 'extended', middle: 'extended', ring: 'bent', pinky: 'bent', description: '엄지, 검지, 중지를 펴고 나머지는 구부립니다.' },
-                'ㅁ': { thumb: 'bent', index: 'extended', middle: 'extended', ring: 'extended', pinky: 'extended', description: '네 손가락을 붙여 세우고 엄지는 손바닥에 붙입니다.' },
-                'ㅂ': { thumb: 'extended', index: 'extended', middle: 'extended', ring: 'extended', pinky: 'extended', description: '손바닥이 앞을 향하게 하고 모든 손가락을 폅니다.' },
-                'ㅅ': { thumb: 'bent', index: 'extended', middle: 'extended', ring: 'bent', pinky: 'bent', description: '검지와 중지를 교차시켜 폅니다. (인식기는 교차를 감지하지 못하고 ㄴ과 같게 볼 수 있습니다)' },
-                'ㅇ': { thumb: 'extended', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '엄지와 검지 끝을 붙여 동그라미를 만듭니다.' },
-                'ㅈ': { thumb: 'bent', index: 'extended', middle: 'extended', ring: 'extended', pinky: 'bent', description: '검지, 중지, 약지를 펴고 나머지는 구부립니다.' },
-                'ㅊ': { thumb: 'bent', index: 'bent', middle: 'bent', ring: 'bent', pinky: 'extended', description: '새끼손가락만 펴고(ㅣ 모양) 위아래로 움직입니다. (정지 동작은 ㅣ와 동일)' },
-                'ㅋ': { thumb: 'extended', index: 'extended', middle: 'extended', ring: 'bent', pinky: 'bent', description: '검지와 중지를 펴고(ㄴ 모양), 엄지 끝을 중지 첫마디에 댑니다.' },
-                'ㅌ': { thumb: 'bent', index: 'extended', middle: 'extended', ring: 'extended', pinky: 'extended', description: '네 손가락을 붙여 펴고(ㅁ 모양) 손목을 비틉니다. (정지 동작은 ㅁ과 동일)' },
+                'ㄱ': { thumb: 'extended', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '검지와 엄지를 펴고 검지로 아래를 가리킵니다.' },
+                'ㄴ': { thumb: 'extended', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '검지와 엄지를 펴고 옆을 가리킵니다.' },
+                'ㄷ': { thumb: 'extended', index: 'extended', middle: 'extended', ring: 'extended', pinky: 'bent', description: '' },
+                'ㄹ': { thumb: 'extended', index: 'extended', middle: 'extended', ring: 'bent', pinky: 'bent', description: '' },
+                'ㅁ': { thumb: 'bent', index: 'extended', middle: 'extended', ring: 'extended', pinky: 'extended', description: '' },
+                'ㅂ': { thumb: 'extended', index: 'extended', middle: 'extended', ring: 'extended', pinky: 'extended', description: '손바닥이 앞을 향하게 하고 엄지 손가락만 구부립니다.' },
+                'ㅅ': { thumb: 'bent', index: 'extended', middle: 'extended', ring: 'bent', pinky: 'bent', description: '' },
+                'ㅇ': { thumb: 'extended', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '엄지와 검지 끝을 붙여 동그라미를 만듭니다.OK사인처럼!' },
+                'ㅈ': { thumb: 'bent', index: 'extended', middle: 'extended', ring: 'extended', pinky: 'bent', description: '' },
+                'ㅊ': { thumb: 'bent', index: 'bent', middle: 'bent', ring: 'bent', pinky: 'extended', description: '' },
+                'ㅋ': { thumb: 'extended', index: 'extended', middle: 'extended', ring: 'bent', pinky: 'bent', description: '' },
+                'ㅌ': { thumb: 'bent', index: 'extended', middle: 'extended', ring: 'extended', pinky: 'extended', description: '' },
                 'ㅍ': { thumb: 'extended', index: 'extended', middle: 'extended', ring: 'bent', pinky: 'extended', description: '검지, 중지, 새끼손가락을 펴고 엄지로 약지를 누릅니다.' },
                 'ㅎ': { thumb: 'extended', index: 'extended', middle: 'extended', ring: 'extended', pinky: 'extended', description: '손바닥을 아래로 향하게 펴고(ㅂ 모양) 좌우로 흔듭니다. (정지 동작은 ㅂ과 동일)' },
-                'ㅏ': { thumb: 'extended', index: 'bent', middle: 'bent', ring: 'bent', pinky: 'bent', description: '엄지를 펴고 나머지는 주먹을 쥡니다.' },
-                'ㅑ': { thumb: 'extended', index: 'bent', middle: 'bent', ring: 'bent', pinky: 'bent', description: 'ㅏ 모양에서 오른쪽으로 두 번 짧게 움직입니다. (정지 동작은 ㅏ와 동일)' },
-                'ㅓ': { thumb: 'bent', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '검지를 펴고, 손등이 정면을 향하도록 손을 세웁니다.' },
-                'ㅕ': { thumb: 'bent', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: 'ㅓ 모양에서 오른쪽으로 두 번 짧게 움직입니다. (정지 동작은 ㅓ와 동일)' },
-                'ㅗ': { thumb: 'extended', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '엄지와 검지를 펴서 직각(ㅗ)으로 만듭니다.' },
-                'ㅛ': { thumb: 'extended', 'index': 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: 'ㅗ 모양에서 위로 두 번 짧게 움직입니다. (정지 동작은 ㅗ와 동일)' },
-                'ㅜ': { thumb: 'bent', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '검지를 펴서 아래를 가리킵니다. (손등이 위를 향함)' },
-                'ㅠ': { thumb: 'bent', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: 'ㅜ 모양에서 아래로 두 번 짧게 움직입니다. (정지 동작은 ㅜ와 동일)' },
-                'ㅡ': { thumb: 'bent', 'index': 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '검지를 펴서 수평으로 만듭니다. (손등이 위를 향하고 손끝이 왼쪽을 향함)' },
-                'ㅣ': { thumb: 'bent', index: 'bent', middle: 'bent', ring: 'bent', pinky: 'extended', description: '새끼손가락을 펴고 나머지는 주먹을 쥡니다.' },
+                'ㅏ': { thumb: 'bent', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '검지만 펴고 천장을 가리킵니다.' },
+                'ㅑ': { thumb: 'extended', index: 'bent', middle: 'bent', ring: 'bent', pinky: 'bent', description: '' },
+                'ㅓ': { thumb: 'bent', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '검지를 펴고, 손등이 위를 향한 채로 옆을 가리킵니다..' },
+                'ㅕ': { thumb: 'bent', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '' },
+                'ㅗ': { thumb: 'extended', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '' },
+                'ㅛ': { thumb: 'extended', 'index': 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '' },
+                'ㅜ': { thumb: 'bent', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '' },
+                'ㅠ': { thumb: 'bent', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '' },
+                'ㅡ': { thumb: 'bent', 'index': 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '' },
+                'ㅣ': { thumb: 'bent', index: 'bent', middle: 'bent', ring: 'bent', pinky: 'extended', description: '' },
             };
         }
 
